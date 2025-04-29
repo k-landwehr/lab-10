@@ -1,0 +1,152 @@
+---
+title: "lab-10"
+format: html
+---
+
+# Libraries 
+```{r}
+# spatial data science
+library(tidyverse)
+library(sf)
+library(units)
+
+# Data
+library(AOI)
+
+# Visualization
+library(gghighlight)
+library(ggrepel)
+library(knitr)
+library(dplyr)
+library(flextable)
+```
+
+# Question 1
+```{r}
+#1.1 
+eqdc <- '+proj=eqdc +lat_0=40 +lon_0=-96 +lat_1=20 +lat_2=60 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs'
+
+#1.2 
+remotes::install_github("mikejohnson51/AOI")
+states <- aoi_get(state = 'conus')
+states <- st_transform(states, crs = eqdc)
+
+#1.3 
+countries <- aoi_get(country = c("MX", "CA", "USA"))
+sf::st_crs(countries)
+countries <- st_transform(countries, crs = eqdc)
+
+#1.4 
+library(readr)
+uscities <- read_csv("data/uscities_data/uscities.csv")
+uscities_sf <- st_as_sf(uscities, 
+                        coords = c("lng", "lat"),  
+                        crs = 4326)
+# Remove cities in Alaska, Hawaii, and Puerto Rico
+uscities_sf_filtered <- uscities_sf %>%
+  filter(!state_name %in% c("Alaska", "Hawaii", "Puerto Rico"))
+uscities_sf_filtered <- st_transform(uscities_sf_filtered, crs = eqdc)
+```
+
+# Question 2
+```{r}
+##2.1 Distance to U.S. Border (km0)
+usa_union <- st_union(states) #Combine    
+usa_border <- st_boundary(usa_union)
+
+uscities_sf_filtered$distance_to_border_km <- st_distance(uscities_sf_filtered, usa_border) %>%
+  as.numeric() / 1000 
+#Five farthest cities 
+farthest_cities <- uscities_sf_filtered %>%
+  arrange(desc(distance_to_border_km)) %>%
+  select(city, state_name, distance_to_border_km) %>%
+  slice(1:5) %>%
+  mutate(distance_to_border_km = round(distance_to_border_km, 2))
+
+#Table 
+farthest_table_df <- farthest_cities %>%
+  st_drop_geometry()
+farthest_table <- flextable(farthest_table_df) %>%
+  set_header_labels(
+    city = "City",
+    state_name = "State",
+    distance_to_border_km = "Distance to Border (km)")%>%
+  autofit()
+print(farthest_table)
+
+##2.2 Distance to States (km)
+state_boundaries <- st_boundary(states) #combine
+combined_state_lines <- st_union(state_boundaries)
+
+#Calculate distances
+uscities_sf_filtered$distance_to_sb_km <- st_distance(uscities_sf_filtered, combined_state_lines)%>%
+  as.numeric() / 1000 
+
+#Five farthest cities
+farthest_cities_sb <- uscities_sf_filtered %>%
+  arrange(desc(distance_to_sb_km)) %>%
+  select(city, state_name, distance_to_sb_km) %>%
+  slice(1:5) %>%
+  mutate(distance_to_sb_km = round(distance_to_sb_km, 2))
+
+#Table
+farthest_table_sb <- farthest_cities_sb %>%
+  st_drop_geometry() %>%
+  flextable() %>%
+  set_header_labels(
+    city = "City",
+    state_name = "State",
+    distance_to_sb_km = "Distance to State Border (km)") %>%
+  autofit()
+print(farthest_table_sb)
+
+##2.3 Distance to Mexico (km)
+mexico <- countries %>%
+  filter(sovereignt == "Mexico")
+mexico_border <- st_boundary(mexico) #distance
+uscities_sf_filtered$distance_to_mexico_border_km <- st_distance(uscities_sf_filtered, mexico_border) %>%
+  as.numeric() / 1000 
+
+#Five farthest cities
+farthest_cities_mexico_border <- uscities_sf_filtered %>%
+  arrange(desc(distance_to_mexico_border_km)) %>%
+  select(city, state_name, distance_to_mexico_border_km) %>%
+  slice(1:5) %>%
+  mutate(distance_to_mexico_border_km = round(distance_to_mexico_border_km, 2))
+
+#Table
+farthest_table_mexico_border <- farthest_cities_mexico_border %>%
+  st_drop_geometry() %>%
+  flextable() %>%
+  set_header_labels(
+    city = "City",
+    state_name = "State",
+    distance_to_mexico_border_km = "Distance to Mexican Border (km)") %>%
+  autofit()
+print(farthest_table_mexico_border)
+
+##2.4 Distance to Canada (km)
+canada <- countries %>%
+  filter(sovereignt == "Canada")
+canada_border <- st_boundary(canada)
+uscities_sf_filtered$distance_to_canada_border_km <- st_distance(uscities_sf_filtered, canada_border) %>%
+  as.numeric() / 1000 
+# Five cities
+farthest_cities_canada_border <- uscities_sf_filtered %>%
+  arrange(desc(distance_to_canada_border_km)) %>%
+  select(city, state_name, distance_to_canada_border_km) %>%
+  slice(1:5) %>%
+  mutate(distance_to_canada_border_km = round(distance_to_canada_border_km, 2))
+
+# Table 
+farthest_table_canada_border <- farthest_cities_canada_border %>%
+  st_drop_geometry() %>%
+  flextable() %>%
+  set_header_labels(
+    city = "City",
+    state_name = "State",
+    distance_to_canada_border_km = "Distance to Canadian Border (km)") %>%
+  autofit()
+print(farthest_table_canada_border)
+```
+
