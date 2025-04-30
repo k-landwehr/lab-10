@@ -1,5 +1,6 @@
 ---
-title: "Lab 10"
+title: "ESS 330 Lab 10"
+author: "Kendall Landwehr"
 format: html
 ---
 
