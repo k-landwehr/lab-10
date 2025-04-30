@@ -351,3 +351,85 @@ ggplot(data = uscities_sf_filtered) +
 
 ```
 
+# Question 4
+```{r}
+##4.1 Quantifying Border Zone
+# Filter cities within 160 km (100 miles) from the U.S. border
+border_zone_cities <- uscities_sf_filtered %>%
+  filter(distance_to_border_km <= 160)
+
+# Count the number of cities within the 100-mile zone
+num_cities_in_zone <- nrow(border_zone_cities)
+num_cities_in_zone
+
+# Sum the population of cities within the border zone
+total_population_in_zone <- sum(border_zone_cities$population, na.rm = TRUE)
+total_population_in_zone
+
+# Total U.S. population estimate
+total_us_population <- 330000000
+
+# Calculate percentage of total U.S. population in this zone
+percentage_population_in_zone <- (total_population_in_zone / total_us_population) * 100
+percentage_population_in_zone
+
+# Flextable to organize info
+quantify_border <- data.frame(
+  "Metric" = c("Number of Cities", "Total Population in Zone", 
+              "Percentage of U.S. Population in Zone", "Does it Match the ACLU Estimate?"),
+  "Value" = c(num_cities_in_zone, total_population_in_zone, 
+              round(percentage_population_in_zone, 2), "Yes"))
+
+quantify_border <- flextable(quantify_border) %>%
+  set_header_labels(
+    Metric = "Metric",
+    Value = "Value"
+  ) %>%
+  autofit()
+print(quantify_border)
+
+```
+
+```{r}
+##4.2 Mapping Border Zone
+# Identify the 10 most populous cities within the 100-mile zone
+top_10_border_zone <- border_zone_cities %>%
+  arrange(desc(population)) %>%
+  slice(1:10)
+
+# Plot
+ggplot() +
+  geom_sf(data = states, fill = NA, color = "gray70", lwd = 0.5) +
+  
+  # Use distance to border for color
+  geom_sf(data = border_zone_cities, aes(color = distance_to_border_km), size = 2, alpha = 0.8) +
+  
+  # Highlight all cities in the filtered dataset (all are within 100 miles)
+  gghighlight::gghighlight(TRUE, use_direct_label = FALSE) +
+  
+  # Gradient: darker red = closer to border
+  scale_color_gradient(low = "darkred", high = "orange", name = "Distance to Border (km)") +
+  
+  # Label top 10 most populous cities
+  ggrepel::geom_label_repel(
+    data = top_10_border_zone,
+    aes(x = st_coordinates(top_10_border_zone)[, 1],
+        y = st_coordinates(top_10_border_zone)[, 2],
+        label = city),
+    size = 3, box.padding = 0.3, max.overlaps = 10) +
+  
+  theme_minimal() +
+  theme(legend.title = element_text(size = 8),
+    legend.text = element_text(size = 7),
+    legend.key.height = unit(0.25, "cm"),
+    legend.key.width = unit(0.3, "cm"),
+    legend.spacing.y = unit(0.2, "cm"),
+    axis.title = element_blank(),
+    axis.text = element_blank(),
+    panel.grid = element_blank(),
+    legend.position = "right",
+    plot.title = element_text(size = 13)) +
+  labs(
+    title = "Map of Border Zone (Within 100 Miles)")
+```
+
