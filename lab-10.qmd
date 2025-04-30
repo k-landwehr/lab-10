@@ -73,7 +73,10 @@ farthest_table <- flextable(farthest_table_df) %>%
     distance_to_border_km = "Distance to Border (km)")%>%
   autofit()
 print(farthest_table)
+```
 
+
+```{r}
 ##2.2 Distance to States (km)
 state_boundaries <- st_boundary(states) #combine
 combined_state_lines <- st_union(state_boundaries)
@@ -99,7 +102,10 @@ farthest_table_sb <- farthest_cities_sb %>%
     distance_to_sb_km = "Distance to State Border (km)") %>%
   autofit()
 print(farthest_table_sb)
+```
 
+
+```{r}
 ##2.3 Distance to Mexico (km)
 mexico <- countries %>%
   filter(sovereignt == "Mexico")
@@ -124,7 +130,10 @@ farthest_table_mexico_border <- farthest_cities_mexico_border %>%
     distance_to_mexico_border_km = "Distance to Mexican Border (km)") %>%
   autofit()
 print(farthest_table_mexico_border)
+```
 
+
+```{r}
 ##2.4 Distance to Canada (km)
 canada <- countries %>%
   filter(sovereignt == "Canada")
@@ -148,5 +157,42 @@ farthest_table_canada_border <- farthest_cities_canada_border %>%
     distance_to_canada_border_km = "Distance to Canadian Border (km)") %>%
   autofit()
 print(farthest_table_canada_border)
+```
+
+# Question 3
+```{r}
+##3.1 
+library(ggplot2)
+library(sf)
+library(dplyr)
+library(ggrepel)
+
+# Extract the top 10 cities by population
+top_10_cities <- uscities_sf_filtered %>%
+  arrange(desc(population)) %>%
+  slice(1:10)
+
+# Make plot
+ggplot() +
+  geom_sf(data = countries, fill = "lightgray", color = "white", lwd = 0.2) +
+  
+  geom_sf(data = states, fill = NA, color = "black", size = 1, lty = 1) +
+  
+ ggrepel::geom_label_repel(data = top_10_cities,
+                            aes(x = st_coordinates(top_10_cities)[,1], 
+                                y = st_coordinates(top_10_cities)[,2],
+                                label = city),
+                            size = 2, 
+                            max.overlaps = Inf, 
+                            box.padding = 0.5,  
+                            nudge_y = 0.1,      
+                            nudge_x = 0.1,      
+                            segment.size = 0.5, 
+                            segment.color = "black") +
+  
+  labs(title = "Top 10 Largest U.S. Cities by Population") + theme_minimal() +
+ theme(axis.title = element_blank(),
+        legend.position = "none", 
+        plot.title = element_text(size = 10))
 ```
 
