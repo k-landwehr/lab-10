@@ -161,7 +161,7 @@ print(farthest_table_canada_border)
 
 # Question 3
 ```{r}
-##3.1 
+##3.1 Plot for largest 10 cities 
 library(ggplot2)
 library(sf)
 library(dplyr)
@@ -194,5 +194,104 @@ ggplot() +
  theme(axis.title = element_blank(),
         legend.position = "none", 
         plot.title = element_text(size = 10))
+```
+```{r}
+##3.2 Plot for city distance from national border
+ggplot() +
+  geom_sf(data = usa_border, color = "black", fill = NA, size = 1) +
+  
+  geom_sf(data = states, fill = NA, color = "gray50", size = 0.4, lty = 2) +
+
+  geom_sf(data = uscities_sf_filtered, 
+          aes(color = distance_to_border_km), 
+          size = 1.2, alpha = 0.7) +
+  
+  geom_sf(data = farthest_cities, 
+          color = "red", 
+          size = 3, shape = 21, fill = "yellow") +
+  
+  ggrepel::geom_label_repel(data = farthest_cities,
+                            aes(x = st_coordinates(farthest_cities)[,1], 
+                                y = st_coordinates(farthest_cities)[,2],
+                                label = city),
+                            size = 2.5,
+                            box.padding = 0.4,
+                            nudge_y = 0.2,
+                            segment.size = 0.4,
+                            segment.color = "black") +
+  
+  coord_sf(xlim = st_bbox(states)[c("xmin", "xmax")],
+           ylim = st_bbox(states)[c("ymin", "ymax")],
+           expand = FALSE) +
+  
+  labs(title = "U.S. Cities Distance to National Border",
+       subtitle = "Top 5 Farthest Cities from the Border",
+       caption = "Distance measured in kilometers",
+       color = "Distance to Border (km)") +
+  
+  theme_minimal(base_size = 13) +
+  theme(
+    legend.position = "right",
+    legend.title = element_text(size = 8),
+    legend.text = element_text(size = 7),
+    legend.key.height = unit(0.25, "cm"),
+    legend.key.width = unit(0.3, "cm"),
+    legend.spacing.y = unit(0.2, "cm"),
+    axis.title = element_blank(),
+        plot.title = element_text(size = 13),
+    plot.subtitle = element_text(size = 10))
+```
+
+```{r}
+##3.3 Plot for City Distance to Nearest State Border
+ggplot() +
+  geom_sf(data = usa_border, color = "black", fill = NA, size = 1) +
+  
+  geom_sf(data = states, fill = NA, color = "gray50", size = 0.4, lty = 2) +
+  
+  geom_sf(data = uscities_sf_filtered, 
+          aes(color = distance_to_sb_km), 
+          size = 1.2, alpha = 0.7) +
+  
+  geom_sf(data = farthest_cities_sb, 
+          color = "darkred", 
+          size = 3, shape = 21, fill = "orange") +
+  
+  ggrepel::geom_label_repel(data = farthest_cities_sb,
+                            aes(x = st_coordinates(farthest_cities_sb)[,1], 
+                                y = st_coordinates(farthest_cities_sb)[,2],
+                                label = city),
+                            size = 2.5,
+                            box.padding = 0.4,
+                            nudge_y = 0.2,
+                            segment.size = 0.4,
+                            segment.color = "black") +
+
+  coord_sf(xlim = st_bbox(states)[c("xmin", "xmax")],
+           ylim = st_bbox(states)[c("ymin", "ymax")],
+           expand = FALSE) +
+
+  labs(title = "U.S. Cities Distance to Nearest State Border",
+       subtitle = "Top 5 Farthest Cities from Any State Border",
+       caption = "Distance measured in kilometers",
+       color = "Distance to State Border (km)") +
+
+  theme_minimal(base_size = 13) +
+  theme(
+    legend.position = "right",
+    legend.title = element_text(size = 8),
+    legend.text = element_text(size = 5),
+    legend.key.height = unit(0.25, "cm"),
+    legend.key.width = unit(0.3, "cm"),
+    legend.spacing.y = unit(0.2, "cm"),
+    axis.title = element_blank(), plot.title = element_text(size = 13),
+    plot.subtitle = element_text(size = 10), plot.caption = element_text(size = 6))
+
+```
+
+```{r}
+##3.4 Equidistant boundary from Mexico and Canada 
+
+
 ```
 
