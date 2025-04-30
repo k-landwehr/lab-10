@@ -1,9 +1,9 @@
 ---
-title: "lab-10"
+title: "Lab 10"
 format: html
 ---
 
-# Libraries 
+## Libraries 
 ```{r}
 # spatial data science
 library(tidyverse)
@@ -21,7 +21,7 @@ library(dplyr)
 library(flextable)
 ```
 
-# Question 1
+## Question 1
 ```{r}
 #1.1 
 eqdc <- '+proj=eqdc +lat_0=40 +lon_0=-96 +lat_1=20 +lat_2=60 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs'
@@ -48,7 +48,7 @@ uscities_sf_filtered <- uscities_sf %>%
 uscities_sf_filtered <- st_transform(uscities_sf_filtered, crs = eqdc)
 ```
 
-# Question 2
+## Question 2
 ```{r}
 ##2.1 Distance to U.S. Border (km0)
 usa_union <- st_union(states) #Combine    
@@ -351,7 +351,7 @@ ggplot(data = uscities_sf_filtered) +
 
 ```
 
-# Question 4
+## Question 4
 ```{r}
 ##4.1 Quantifying Border Zone
 # Filter cities within 160 km (100 miles) from the U.S. border
@@ -387,7 +387,6 @@ quantify_border <- flextable(quantify_border) %>%
   ) %>%
   autofit()
 print(quantify_border)
-
 ```
 
 ```{r}
