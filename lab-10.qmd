@@ -238,8 +238,10 @@ ggplot() +
     legend.key.width = unit(0.3, "cm"),
     legend.spacing.y = unit(0.2, "cm"),
     axis.title = element_blank(),
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
         plot.title = element_text(size = 13),
-    plot.subtitle = element_text(size = 10))
+    plot.subtitle = element_text(size = 10), plot.caption = element_text(size = 6))
 ```
 
 ```{r}
@@ -284,14 +286,68 @@ ggplot() +
     legend.key.height = unit(0.25, "cm"),
     legend.key.width = unit(0.3, "cm"),
     legend.spacing.y = unit(0.2, "cm"),
-    axis.title = element_blank(), plot.title = element_text(size = 13),
+    axis.title = element_blank(), axis.text = element_blank(),
+    axis.ticks = element_blank(), plot.title = element_text(size = 13), 
     plot.subtitle = element_text(size = 10), plot.caption = element_text(size = 6))
-
 ```
 
 ```{r}
 ##3.4 Equidistant boundary from Mexico and Canada 
+# Make new column
+uscities_sf_filtered$abs_diff_can_mex <- abs(
+  uscities_sf_filtered$distance_to_canada_border_km - 
+  uscities_sf_filtered$distance_to_mexico_border_km)
 
+# Filter for equidistant cities
+zone_cities <- uscities_sf_filtered %>%
+  filter(abs_diff_can_mex < 50)
+
+# Top 5 most populus 
+top5_zone <- zone_cities %>%
+  arrange(desc(population)) %>%
+  slice(1:5)
+
+# Plot with gghighlight
+library(gghighlight)
+ggplot(data = uscities_sf_filtered) +
+  geom_sf(aes(color = abs_diff_can_mex), size = 1, alpha = 0.6) +
+  
+  # Highlight only cities near equidistant zone
+  gghighlight(abs_diff_can_mex < 50, label_key = city, use_direct_label = FALSE) +
+  
+  # Label top 5 populous cities in the zone
+  ggrepel::geom_label_repel(data = top5_zone,
+                            aes(x = st_coordinates(top5_zone)[,1],
+                                y = st_coordinates(top5_zone)[,2],
+                                label = city),
+                            size = 2.5,
+                            box.padding = 0.4,
+                            segment.size = 0.4) +
+  
+  # Add national border and state outlines
+  geom_sf(data = usa_border, color = "black", fill = NA, size = 1) +
+  geom_sf(data = states, fill = NA, color = "gray60", size = 0.4, lty = 2) +
+  
+  coord_sf(xlim = st_bbox(states)[c("xmin", "xmax")],
+           ylim = st_bbox(states)[c("ymin", "ymax")],
+           expand = FALSE) +
+  
+  labs(title = "Cities Equidistant from Canadian and Mexican Borders",
+       subtitle = "Top 5 most populous cities in this zone are labeled",
+       color = "Abs. Distance Diff (km)",
+       caption = "Highlighted cities are within ~50 km difference in border distances") +
+  
+  theme_minimal() +
+  theme(
+    legend.title = element_text(size = 8),
+    legend.text = element_text(size = 7),
+    legend.key.height = unit(0.25, "cm"),
+    legend.key.width = unit(0.3, "cm"),
+    legend.spacing.y = unit(0.2, "cm"),
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    axis.ticks = element_blank(), plot.title = element_text(size = 12), 
+    plot.subtitle = element_text(size = 9), plot.caption = element_text(size = 6))
 
 ```
 
